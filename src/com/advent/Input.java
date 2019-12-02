@@ -63,7 +63,11 @@ public class Input {
     public static String getSessionIdFromConfig() {
         Object obj;
         try {
-            obj = new JSONParser().parse(new FileReader("config.json"));
+            File configFile = new File("config.json");
+            if (!configFile.exists()) {
+                configFile.createNewFile();
+            }
+            obj = new JSONParser().parse(new FileReader(configFile));
             JSONObject jo = (JSONObject) obj;
             return (String) jo.get("sessionId");
         } catch (Exception e) {
