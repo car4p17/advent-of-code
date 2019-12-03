@@ -51,6 +51,7 @@ public class Main {
         startTimeNano = System.nanoTime();
         Logger.log("Output: " + day.runPart2(input));
         Logger.log("Runtime: " + (System.nanoTime() - startTimeNano) + " ns");
+        Logger.closeInput();
     }
 
     private static boolean createDayFile(int year, int day) {

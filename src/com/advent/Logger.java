@@ -13,6 +13,10 @@ public class Logger {
 	static String outputFolder = "output/";
 	static String shortDateFolder;
 	static boolean filesCreated = false;
+
+	private static PrintWriter out;
+
+
 	public Logger(String filename) {
 		Logger.filename = filename;
 		clear();
@@ -29,6 +33,18 @@ public class Logger {
 		log("");
 	}
 	public static void log(Object o) { log(o.toString()); }
+	public static void log(Object[] o) {
+		String out = "";
+		for (Object obj: o) {
+			out += obj + " ";
+		}
+		log(out);
+	}
+	public static void log(Object[][] objss) {
+		for (Object[] objs: objss) {
+			log(objs);
+		}
+	}
 	public static void log(int i) {
 		log(""+i);
 	}
@@ -49,16 +65,10 @@ public class Logger {
 	}
 	private static void fileLog(Object o) {
 		fileSetup();
-		try (
-			FileWriter fw = new FileWriter(outputFolder + shortDateFolder + filename, true);
-			BufferedWriter bw = new BufferedWriter(fw);
-			PrintWriter out = new PrintWriter(bw)
-		)
-		{
+		try {
 			out.println(o.toString());
-		} catch (IOException e) {
-			log("Error with Logger File Writing");
-		   error(e);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	private static void fileSetup() {
@@ -84,9 +94,21 @@ public class Logger {
 				}
 			}
 			filesCreated = true;
+			try {
+				FileWriter fw = new FileWriter(outputFolder + shortDateFolder + filename, true);
+				BufferedWriter bw = new BufferedWriter(fw);
+				out = new PrintWriter(bw);
+			} catch (Exception e) {
+				error(e);
+			}
 		}
 
 	}
+
+	public static void closeInput() {
+		out.close();
+	}
+
 	public static void clear() {
 		File f = new File(outputFolder + filename);
 		PrintWriter writer;
