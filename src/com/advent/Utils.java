@@ -388,4 +388,13 @@ public class Utils {
         }
         return toPad;
     }
+
+    public static int[] digits(int num) {
+        String[] strDigits = ("" + num).split("");
+        int[] digits = new int[strDigits.length];
+        for (int i = 0; i < strDigits.length; i++) {
+            digits[i] = Integer.parseInt(strDigits[i]);
+        }
+        return digits;
+    }
 }
