@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class Utils {
     public static boolean isPermutation(int num1, int num2) {
@@ -396,5 +397,13 @@ public class Utils {
             digits[i] = Integer.parseInt(strDigits[i]);
         }
         return digits;
+    }
+
+    public static List<Integer> clone(List<Integer> toClone) {
+        List<Integer> clone = new ArrayList<>();
+        for (Integer c: toClone) {
+            clone.add(c.intValue());
+        }
+        return clone;
     }
 }
