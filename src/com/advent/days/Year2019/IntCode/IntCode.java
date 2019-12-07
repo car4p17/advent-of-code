@@ -10,7 +10,7 @@ import java.util.List;
 public class IntCode {
     private static int instructionPointer = 0;
     private static List<Integer> program;
-    public static List<String> output = new ArrayList<>();
+    public static List<Integer> output = new ArrayList<>();
     private static final int STOP_CODE = 99;
     private static final int ADD_CODE = 1;
     private static final int MULTIPLY_CODE = 2;
@@ -87,11 +87,21 @@ public class IntCode {
         return runProgramExec(setupInput(inputData), input);
     }
 
+    public static Pair<Integer, List<Integer>> runProgram(List<String> inputData, int[] input, int instructionPointerVal) {
+        return runProgramExec(setupInput(inputData), input, instructionPointerVal);
+    }
+
     public static List<Integer> runProgramExec(List<Integer> initialProgram, int input) {
-        instructionPointer = 0;
+        int[] ar = {input};
+        return runProgramExec(initialProgram, ar, 0).getValue();
+    }
+
+    public static Pair<Integer, List<Integer>> runProgramExec(List<Integer> initialProgram, int[] input, int instructionPointerVal) {
+        instructionPointer = instructionPointerVal;
         output = new ArrayList<>();
         program = Utils.clone(initialProgram);
         int opcode = 0;
+        int inputIndex = 0;
         do  {
             int instruction = program.get(instructionPointer);
             opcode = getOpcode(instruction);
@@ -107,10 +117,15 @@ public class IntCode {
                     program.set(params[2].getKey(), params[0].getValue() * params[1].getValue());
                     break;
                 case INPUT_CODE:
-                    program.set(params[0].getKey(), input);
+                    if (inputIndex < input.length) {
+                        program.set(params[0].getKey(), input[inputIndex]);
+                        inputIndex++;
+                    } else {
+                        return new Pair(instructionPointer, Utils.clone(program));
+                    }
                     break;
                 case OUTPUT_CODE:
-                    output.add("" + params[0].getValue());
+                    output.add(params[0].getValue());
                     break;
                 case JUMP_IF_TRUE_CODE:
                     if (params[0].getValue() != 0) {
@@ -136,6 +151,6 @@ public class IntCode {
                 instructionPointer %= program.size();
             }
         } while (opcode != STOP_CODE);
-        return program;
+        return new Pair(Integer.MAX_VALUE, Utils.clone(program));
     }
 }

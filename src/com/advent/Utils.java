@@ -5,10 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class Utils {
     public static boolean isPermutation(int num1, int num2) {
@@ -405,5 +402,33 @@ public class Utils {
             clone.add(c.intValue());
         }
         return clone;
+    }
+
+    public static <T> List<T[]> getAllPermutations(T[] ar) {
+        List<T[]> permutations = new ArrayList<>();
+        permutationsRecursive(ar.length, ar, permutations);
+        return permutations;
+    }
+
+
+    public static<T> void permutationsRecursive(int n, T[] elements, List<T[]> permutations) {
+        if(n == 1) {
+            permutations.add(Arrays.copyOf(elements, elements.length));
+        } else {
+            for(int i = 0; i < n-1; i++) {
+                permutationsRecursive(n - 1, elements, permutations);
+                if(n % 2 == 0) {
+                    swap(elements, i, n-1);
+                } else {
+                    swap(elements, 0, n-1);
+                }
+            }
+            permutationsRecursive(n - 1, elements, permutations);
+        }
+    }
+    private static<T> void swap(T[] input, int a, int b) {
+        T tmp = input[a];
+        input[a] = input[b];
+        input[b] = tmp;
     }
 }

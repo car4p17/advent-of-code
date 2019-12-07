@@ -12,13 +12,13 @@ public class Day5 extends Day{
     public String runPart1(List<String> input) {
         IntCode.runProgram(input, 1);
         Logger.log(IntCode.output);
-        return IntCode.output.get(IntCode.output.size() - 1);
+        return "" +IntCode.output.get(IntCode.output.size() - 1);
     }
 
     public String runPart2(List<String> input) {
         IntCode.runProgram(input, 5);
         Logger.log(IntCode.output);
-        return IntCode.output.get(IntCode.output.size() - 1);
+        return "" +IntCode.output.get(IntCode.output.size() - 1);
     }
 
 
