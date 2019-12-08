@@ -6,11 +6,11 @@ import com.advent.Utils;
 import com.advent.days.Day;
 
 public class DayTemp extends Day{
-    public String runPart1(List<String> input) {
+    public Object runPart1(List<String> input) {
         return null;
     }
 
-    public String runPart2(List<String> input) {
+    public Object runPart2(List<String> input) {
         return null;
     }
 }

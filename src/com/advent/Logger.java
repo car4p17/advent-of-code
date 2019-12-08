@@ -36,7 +36,7 @@ public class Logger {
 	public static void log(Object[] o) {
 		String out = "";
 		for (Object obj: o) {
-			out += obj + " ";
+			out += obj;
 		}
 		log(out);
 	}
