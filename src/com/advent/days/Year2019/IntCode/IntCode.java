@@ -5,12 +5,14 @@ import com.advent.Utils;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class IntCode {
-    private static int instructionPointer = 0;
-    private static List<Integer> program;
-    public static List<Integer> output = new ArrayList<>();
+    private static long instructionPointer = 0;
+    private static long relativeBase = 0;
+    private static HashMap<Long, Long> program;
+    public static List<Long> output = new ArrayList<>();
     private static final int STOP_CODE = 99;
     private static final int ADD_CODE = 1;
     private static final int MULTIPLY_CODE = 2;
@@ -20,21 +22,22 @@ public class IntCode {
     private static final int JUMP_IF_FALSE_CODE = 6;
     private static final int LESS_THAN_CODE = 7;
     private static final int EQUALS_CODE = 8;
+    private static final int RELATIVE_BASE_CODE = 9;
 
-    public static List<Integer> setupInput(List<String> input) {
+    public static HashMap<Long, Long> setupInput(List<String> input) {
         String[] strProgram = input.get(0).split(",");
-        List<Integer> program = new ArrayList<>();
-        for (String s: strProgram) {
-            program.add(Integer.parseInt(s));
+        HashMap<Long, Long> program = new HashMap<>();
+        for (int i = 0; i < strProgram.length; i++) {
+            program.put((long) i, Long.parseLong(strProgram[i]));
         }
         return program;
     }
 
-    private static int getOpcode(int instruction) {
-        return instruction % 100;
+    private static int getOpcode(long instruction) {
+        return (int) instruction % 100;
     }
 
-    private static int[] getModes(int instruction, int numParams) {
+    private static int[] getModes(long instruction, int numParams) {
         String[] modesStr = Utils.pad("" + instruction / 100, numParams, "0").split("");
         int[] modes = new int[numParams];
         for (int i = 0; i < numParams; i++) {
@@ -45,18 +48,22 @@ public class IntCode {
 
     private static final int POSITION_MODE = 0;
     private static final int IMMEDIATE_MODE = 1;
+    private static final int RELATIVE_MODE = 2;
     // Returns a lits of pairs (index, value);
-    private static Pair<Integer, Integer>[] getParams(int[] modes) {
-        Pair<Integer, Integer>[] params = new Pair[modes.length];
+    private static Pair<Long, Long>[] getParams(int[] modes) {
+        Pair<Long, Long>[] params = new Pair[modes.length];
         for (int i = 0; i < modes.length; i++) {
-            int param = program.get(instructionPointer + i + 1);
+            long param = program.get(instructionPointer + i + 1);
             switch (modes[i]) {
                 case POSITION_MODE:
-                    params[i] = new Pair(param, program.get(param));
+                    params[i] = new Pair<>(param, program.get(param));
                     break;
                 case IMMEDIATE_MODE:
-                    params[i] = new Pair(instructionPointer + i + 1, param);
+                    params[i] = new Pair<>(instructionPointer + i + 1, param);
                     break;
+                case RELATIVE_MODE:
+                    long index = param + relativeBase;
+                    params[i] = new Pair<>(index, program.get(index));
             }
         }
         return params;
@@ -72,6 +79,7 @@ public class IntCode {
             case INPUT_CODE:
                 return 1;
             case OUTPUT_CODE:
+            case RELATIVE_BASE_CODE:
                 return 1;
             case STOP_CODE:
                 return 0;
@@ -83,45 +91,58 @@ public class IntCode {
         }
     }
 
-    public static List<Integer> runProgram(List<String> inputData, int input) {
+    public static HashMap<Long, Long> runProgram(List<String> inputData, int input) {
         return runProgramExec(setupInput(inputData), input);
     }
 
-    public static Pair<Integer, List<Integer>> runProgram(List<String> inputData, int[] input, int instructionPointerVal) {
+    public static Pair<Long, HashMap<Long, Long>> runProgram(List<String> inputData, long[] input, long instructionPointerVal) {
         return runProgramExec(setupInput(inputData), input, instructionPointerVal);
     }
 
-    public static List<Integer> runProgramExec(List<Integer> initialProgram, int input) {
-        int[] ar = {input};
+    public static HashMap<Long, Long> runProgramExec(List<Integer> initialProgram, int input) {
+        long[] ar = {input};
+        return runProgramExec(listToMap(initialProgram), ar, 0).getValue();
+    }
+    public static HashMap<Long, Long> runProgramExec(HashMap<Long, Long> initialProgram, int input) {
+        long[] ar = {input};
         return runProgramExec(initialProgram, ar, 0).getValue();
     }
 
-    public static Pair<Integer, List<Integer>> runProgramExec(List<Integer> initialProgram, int[] input, int instructionPointerVal) {
+    private static HashMap<Long, Long> listToMap(List<Integer> initialProgram) {
+        HashMap<Long, Long> map = new HashMap<>();
+        for (int i = 0; i < initialProgram.size(); i++) {
+            map.put((long) i, (long) initialProgram.get(i));
+        }
+        return map;
+    }
+
+    public static Pair<Long, HashMap<Long, Long>> runProgramExec(HashMap<Long, Long> initialProgram, long[] input, long instructionPointerVal) {
         instructionPointer = instructionPointerVal;
+        relativeBase = 0;
         output = new ArrayList<>();
-        program = Utils.clone(initialProgram);
+        program = (HashMap<Long, Long>) initialProgram.clone();
         int opcode = 0;
         int inputIndex = 0;
         do  {
-            int instruction = program.get(instructionPointer);
+            long instruction = program.get(instructionPointer);
             opcode = getOpcode(instruction);
             int numParams = getNumParams(opcode);
             int[] modes = getModes(instruction, numParams);
-            Pair<Integer, Integer>[] params = getParams(modes);
+            Pair<Long, Long>[] params = getParams(modes);
             boolean incrementIP = true;
             switch(opcode) {
                 case ADD_CODE:
-                    program.set(params[2].getKey(), params[0].getValue() + params[1].getValue());
+                    program.put(params[2].getKey(), params[0].getValue() + params[1].getValue());
                     break;
                 case MULTIPLY_CODE:
-                    program.set(params[2].getKey(), params[0].getValue() * params[1].getValue());
+                    program.put(params[2].getKey(), params[0].getValue() * params[1].getValue());
                     break;
                 case INPUT_CODE:
                     if (inputIndex < input.length) {
-                        program.set(params[0].getKey(), input[inputIndex]);
+                        program.put(params[0].getKey(), (long) input[inputIndex]);
                         inputIndex++;
                     } else {
-                        return new Pair(instructionPointer, Utils.clone(program));
+                        return new Pair<Long, HashMap<Long, Long>>(instructionPointer, (HashMap<Long, Long>) program.clone());
                     }
                     break;
                 case OUTPUT_CODE:
@@ -140,10 +161,13 @@ public class IntCode {
                     }
                     break;
                 case LESS_THAN_CODE:
-                    program.set(params[2].getKey(), (params[0].getValue().compareTo(params[1].getValue()) < 0 ? 1 : 0));
+                    program.put(params[2].getKey(), (params[0].getValue().compareTo(params[1].getValue()) < 0 ? 1l : 0l));
                     break;
                 case EQUALS_CODE:
-                    program.set(params[2].getKey(), (params[0].getValue().equals(params[1].getValue()) ? 1 : 0));
+                    program.put(params[2].getKey(), (params[0].getValue().equals(params[1].getValue()) ? 1l : 0l));
+                    break;
+                case RELATIVE_BASE_CODE:
+                    relativeBase += params[0].getValue();
                     break;
             }
             if (incrementIP) {
@@ -151,6 +175,6 @@ public class IntCode {
                 instructionPointer %= program.size();
             }
         } while (opcode != STOP_CODE);
-        return new Pair(Integer.MAX_VALUE, Utils.clone(program));
+        return new Pair<Long, HashMap<Long, Long>>(Long.MAX_VALUE, (HashMap<Long, Long>) program.clone());
     }
 }
