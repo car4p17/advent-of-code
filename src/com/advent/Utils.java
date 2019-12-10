@@ -1,5 +1,7 @@
 package com.advent;
 
+import javafx.util.Pair;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -432,7 +434,45 @@ public class Utils {
         input[b] = tmp;
     }
 
-    public static int gcm(int a, int b) {
+    public static long gcm(long a, long b) {
         return b == 0 ? a : gcm(b, a % b);
+    }
+
+    public static Pair<Long, Long> toRational(double number, int largestRightOfDecimal){
+        long sign = 1;
+        if(number < 0){
+            number = -number;
+            sign = -1;
+        }
+
+        final long SECOND_MULTIPLIER_MAX = (long)Math.pow(10, largestRightOfDecimal - 1);
+        final long FIRST_MULTIPLIER_MAX = SECOND_MULTIPLIER_MAX * 10L;
+        final double ERROR = Math.pow(10, -largestRightOfDecimal - 1);
+        long firstMultiplier = 1;
+        long secondMultiplier = 1;
+        boolean notIntOrIrrational = false;
+        long truncatedNumber = (long)number;
+        Pair<Long, Long> rationalNumber = new Pair<>((long)(sign * number * FIRST_MULTIPLIER_MAX), FIRST_MULTIPLIER_MAX);
+
+        double error = number - truncatedNumber;
+        while( (error >= ERROR) && (firstMultiplier <= FIRST_MULTIPLIER_MAX)){
+            secondMultiplier = 1;
+            firstMultiplier *= 10;
+            while( (secondMultiplier <= SECOND_MULTIPLIER_MAX) && (secondMultiplier < firstMultiplier) ){
+                double difference = (number * firstMultiplier) - (number * secondMultiplier);
+                truncatedNumber = (long)difference;
+                error = difference - truncatedNumber;
+                if(error < ERROR){
+                    notIntOrIrrational = true;
+                    break;
+                }
+                secondMultiplier *= 10;
+            }
+        }
+
+        if(notIntOrIrrational){
+            rationalNumber = new Pair<>(sign * truncatedNumber, firstMultiplier - secondMultiplier);
+        }
+        return rationalNumber;
     }
 }
