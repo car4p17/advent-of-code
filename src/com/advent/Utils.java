@@ -431,4 +431,8 @@ public class Utils {
         input[a] = input[b];
         input[b] = tmp;
     }
+
+    public static int gcm(int a, int b) {
+        return b == 0 ? a : gcm(b, a % b);
+    }
 }
