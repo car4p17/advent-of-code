@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class IntCode {
+    private static boolean info = false;
     private static long instructionPointer = 0;
     private static long relativeBase = 0;
     private static HashMap<Long, Long> program;
@@ -64,6 +65,9 @@ public class IntCode {
                 case RELATIVE_MODE:
                     long index = param + relativeBase;
                     params[i] = new Pair<>(index, program.get(index));
+            }
+            if (params[i].getValue() == null) {
+                params[i] = new Pair<>(params[i].getKey(), 0l);
             }
         }
         return params;
@@ -132,41 +136,71 @@ public class IntCode {
             boolean incrementIP = true;
             switch(opcode) {
                 case ADD_CODE:
+                    if (info) {
+                        Logger.log("ADD " + params[0].getValue() + " " + params[1].getValue() + " " + params[2].getKey());
+                    }
                     program.put(params[2].getKey(), params[0].getValue() + params[1].getValue());
                     break;
                 case MULTIPLY_CODE:
+                    if (info) {
+                        Logger.log("MUL " + params[0].getValue() + " " + params[1].getValue() + " " + params[2].getKey());
+                    }
                     program.put(params[2].getKey(), params[0].getValue() * params[1].getValue());
                     break;
                 case INPUT_CODE:
                     if (inputIndex < input.length) {
+                        if (info) {
+                            Logger.log("IN " + params[0].getKey());
+                        }
                         program.put(params[0].getKey(), (long) input[inputIndex]);
                         inputIndex++;
                     } else {
-                        return new Pair<Long, HashMap<Long, Long>>(instructionPointer, (HashMap<Long, Long>) program.clone());
+                        if (info) {
+                            Logger.log("PROGRAM WAITING FOR INPUT");
+                        }
+                        return new Pair<>(instructionPointer, (HashMap<Long, Long>) program.clone());
                     }
                     break;
                 case OUTPUT_CODE:
+                    if (info) {
+                        Logger.log("OUT " + params[0].getValue());
+                    }
                     output.add(params[0].getValue());
                     break;
                 case JUMP_IF_TRUE_CODE:
+                    if (info) {
+                        Logger.log("JIFTRUE " + params[0].getValue() + " " + params[1].getValue());
+                    }
                     if (params[0].getValue() != 0) {
                         instructionPointer = params[1].getValue();
                         incrementIP = false;
                     }
                     break;
                 case JUMP_IF_FALSE_CODE:
+                    if (info) {
+                        Logger.log("JIFFALSE " + params[0].getValue() + " " + params[1].getValue());
+                    }
                     if (params[0].getValue() == 0) {
                         instructionPointer = params[1].getValue();
                         incrementIP = false;
                     }
                     break;
                 case LESS_THAN_CODE:
+                    if (info) {
+                        Logger.log("LESS " + params[0].getValue() + " " + params[1].getValue() + " " + params[2].getKey());
+                    }
                     program.put(params[2].getKey(), (params[0].getValue().compareTo(params[1].getValue()) < 0 ? 1l : 0l));
                     break;
                 case EQUALS_CODE:
+                    if (info) {
+                        Logger.log("EQ " + params[0].getValue() + " " + params[1].getValue() + " " + params[2].getKey());
+                    }
                     program.put(params[2].getKey(), (params[0].getValue().equals(params[1].getValue()) ? 1l : 0l));
                     break;
                 case RELATIVE_BASE_CODE:
+                    if (info) {
+                        Logger.log("RELATIVE_BASE " + params[0].getValue());
+                    }
                     relativeBase += params[0].getValue();
                     break;
             }
@@ -175,6 +209,6 @@ public class IntCode {
                 instructionPointer %= program.size();
             }
         } while (opcode != STOP_CODE);
-        return new Pair<Long, HashMap<Long, Long>>(Long.MAX_VALUE, (HashMap<Long, Long>) program.clone());
+        return new Pair<>(Long.MAX_VALUE, (HashMap<Long, Long>) program.clone());
     }
 }
