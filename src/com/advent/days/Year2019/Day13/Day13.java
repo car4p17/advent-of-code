@@ -11,6 +11,7 @@ import com.advent.days.Year2019.IntCode.IntCode;
 import javafx.util.Pair;
 
 public class Day13 extends Day{
+    private boolean ai = true;
     public Object runPart1(List<String> input) {
         IntCode.runProgram(input, 0);
         HashMap<Pair<Long, Long>, Long> map = new HashMap<>();
@@ -64,27 +65,29 @@ public class Day13 extends Day{
             display(map);
             Logger.log("--------------------------------------------------------");
 
-            if (ballX < paddleX) {
-                in[0] = -1;
-            } else if (ballX > paddleX) {
-                in[0] = 1;
+            if (ai) {
+                if (ballX < paddleX) {
+                    in[0] = -1;
+                } else if (ballX > paddleX) {
+                    in[0] = 1;
+                } else {
+                    in[0] = 0;
+                }
             } else {
-                in[0] = 0;
+                Logger.log("Move Paddle");
+                Logger.log("1) Left");
+                Logger.log("2) Center");
+                Logger.log("3) Right");
+                String s = scn.next();
+                Logger.log("");
+                if (s.equals("1")) {
+                    in[0] = -1;
+                } else if (s.equals("2")) {
+                    in[0] = 0;
+                } else if (s.equals("3")) {
+                    in[0] = 1;
+                }
             }
-
-            /*Logger.log("Move Paddle");
-            Logger.log("1) Left");
-            Logger.log("2) Center");
-            Logger.log("3) Right");
-            String s = scn.next();
-            Logger.log("");
-            if (s.equals("1")) {
-                in[0] = -1;
-            } else if (s.equals("2")) {
-                in[0] = 0;
-            } else if (s.equals("3")) {
-                in[0] = 1;
-            }*/
         }
 
         Logger.log("--------------------------------------------------------");
